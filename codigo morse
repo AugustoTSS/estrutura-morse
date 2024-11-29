@@ -1,0 +1,177 @@
+class Node:
+    def __init__(self, char=""):
+        self.char = char
+        self.left = None
+        self.right = None
+
+class MorseTree:
+    def __init__(self):
+        self.root = Node()
+        self.morse_code = {
+            "A": ".-", "B": "-...", "C": "-.-.", "D": "-..", "E": ".",
+            "F": "..-.", "G": "--.", "H": "....", "I": "..", "J": ".---",
+            "K": "-.-", "L": ".-..", "M": "--", "N": "-.", "O": "---",
+            "P": ".--.", "Q": "--.-", "R": ".-.", "S": "...", "T": "-",
+            "U": "..-", "V": "...-", "W": ".--", "X": "-..-", "Y": "-.--",
+            "Z": "--..", "1": ".----", "2": "..---", "3": "...--",
+            "4": "....-", "5": ".....", "6": "-....", "7": "--...",
+            "8": "---..", "9": "----.", "0": "-----"
+        }
+        self.build_tree()
+
+        # Árvore de inserção do usuário (inicialmente vazia)
+        self.user_tree_root = None
+
+    def build_tree(self):
+        # Preenche a árvore com o código Morse
+        for char, code in self.morse_code.items():
+            self.add_char(char, code)
+
+    def add_char(self, char, code):
+        # Insere um caractere na árvore com base no código Morse
+        current = self.root
+        for symbol in code:
+            if symbol == '.':
+                if current.left is None:
+                    current.left = Node()
+                current = current.left
+            elif symbol == '-':
+                if current.right is None:
+                    current.right = Node()
+                current = current.right
+        current.char = char
+
+    def find_char(self, code):
+        # Encontra um caractere a partir de seu código Morse
+        current = self.root
+        for symbol in code:
+            if symbol == '.':
+                current = current.left
+            elif symbol == '-':
+                current = current.right
+            if current is None:
+                return None
+        return current.char
+
+    def remove_char(self, code):
+        # Remove um caractere da árvore de inserção do usuário
+        current = self.user_tree_root
+        parent = None
+        direction = ""
+
+        # Navega pela árvore para encontrar o nó correto
+        for symbol in code:
+            parent = current
+            if symbol == '.':
+                current = current.left
+                direction = "left"
+            elif symbol == '-':
+                current = current.right
+                direction = "right"
+            if current is None:
+                print("Caractere não encontrado!")
+                return
+
+        # Se o nó existe, remove o caractere
+        if current:
+            current.char = ""
+            print(f"Caractere removido do código Morse: {code}")
+            # Depois de limpar o caractere, podemos verificar se devemos eliminar o nó
+            if current.left is None and current.right is None:
+                if direction == "left":
+                    parent.left = None
+                elif direction == "right":
+                    parent.right = None
+
+    def display_tree(self, node=None, level=0, tree_type="morse"):
+        # Exibe a árvore binária
+        if node is None:
+            node = self.root if tree_type == "morse" else self.user_tree_root
+
+        if node.right:
+            self.display_tree(node.right, level + 1, tree_type)
+        print("    " * level + (node.char if node.char else "*"))
+        if node.left:
+            self.display_tree(node.left, level + 1, tree_type)
+
+    def encode(self, text):
+        # Converte texto para código Morse
+        encoded_message = ""
+        for char in text:
+            if char.upper() in self.morse_code:
+                encoded_message += self.morse_code[char.upper()] + " "
+            else:
+                encoded_message += "? "
+        return encoded_message.strip()
+
+    def decode(self, message):
+        # Converte código Morse para texto
+        words = message.split(" ")
+        translation = ""
+        for code in words:
+            char = self.find_char(code)
+            if char:
+                translation += char
+            else:
+                translation += "?"
+        return translation
+
+    def insert_user_char(self, char):
+        # Insere um caractere na árvore de inserção do usuário
+        if not self.user_tree_root:
+            self.user_tree_root = Node()  # Inicializa a árvore se ainda não existir
+
+        current = self.user_tree_root
+        for symbol in char:
+            if symbol == '.':
+                if current.left is None:
+                    current.left = Node()
+                current = current.left
+            elif symbol == '-':
+                if current.right is None:
+                    current.right = Node()
+                current = current.right
+        current.char = char
+
+
+def main():
+    tree = MorseTree()
+
+    while True:
+        print("\nMenu:")
+        print("1. Exibir Árvore Binária de Código Morse")
+        print("2. Exibir Árvore de Inserção")
+        print("3. Inserir Caractere na Árvore do Usuário")
+        print("4. Remover Caractere da Árvore de Inserção")
+        print("5. Traduzir Texto para Morse")
+        print("6. Traduzir Morse para Texto")
+        print("7. Sair")
+        choice = input("Escolha uma opção: ")
+
+        if choice == "1":
+            print("\nÁrvore Binária de Código Morse:")
+            tree.display_tree(tree_type="morse")  # Exibe a árvore de código Morse normal
+        elif choice == "2":
+            print("\nÁrvore de Inserção:")
+            tree.display_tree(tree_type="user")  # Exibe a árvore de inserção do usuário
+        elif choice == "3":
+            char = input("Digite o código Morse (usando '.' e '-') para inserir: ")
+            tree.insert_user_char(char)
+            print(f"Caractere inserido: {char}")
+        elif choice == "4":
+            char = input("Digite o código Morse (usando '.' e '-') para remover: ")
+            tree.remove_char(char)  # Remove o caractere
+        elif choice == "5":
+            text = input("Digite o texto para traduzir para Morse: ")
+            print("Código Morse:", tree.encode(text))
+        elif choice == "6":
+            message = input("Digite o código Morse (separado por espaços): ")
+            print("Tradução:", tree.decode(message))
+        elif choice == "7":
+            print("Saindo...")
+            break
+        else:
+            print("Opção inválida! Tente novamente.")
+
+if __name__ == "__main__":
+    main()
